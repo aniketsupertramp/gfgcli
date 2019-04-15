@@ -77,7 +77,7 @@ func loadArticles(company Company, wow *wow.Wow) {
 		}
 		defer res.Body.Close()
 		if res.StatusCode != 200 {
-			fmt.Println("gfgCLI::status code: %d error: %s", res.StatusCode, res.Status)
+			//fmt.Println("gfgCLI::status code: %d error: %s", res.StatusCode, res.Status)
 			break
 		}
 
@@ -104,7 +104,7 @@ func displayArticle(article Article) {
 	// Request the HTML page
 	doc, _ := parseDocument(article.Href)
 	if doc != nil {
-		doc.Find("div[class=entry-content]>p").Each(func(i int, s *goquery.Selection) {
+		doc.Find("div[class=entry-content]>p,div[class=entry-content]>ol,div[class=entry-content]>ul").Each(func(i int, s *goquery.Selection) {
 			fmt.Println(s.Text())
 		})
 	}
