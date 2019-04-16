@@ -439,7 +439,8 @@ func (s *Select) prepareTemplates() error {
 	if tpls.Help == "" {
 		tpls.Help = fmt.Sprintf(`{{ "Use the arrow keys to navigate:" | faint }} {{ .NextKey | faint }} ` +
 			`{{ .PrevKey | faint }} {{ .PageDownKey | faint }} {{ .PageUpKey | faint }} ` +
-			`{{ if .Search }} {{ "and" | faint }} {{ .SearchKey | faint }} {{ "toggles search" | faint }}{{ end }}`)
+			`{{ if .Search }} {{ "and" | faint }} {{ .SearchKey | faint }} {{ "toggles search" | faint }}{{ end }}` +
+			`{{ " Use " | faint }}{{ .EndKey | faint }}{{" (tab) to end." | faint}} `)
 	}
 
 	tpl, err = template.New("").Funcs(tpls.FuncMap).Parse(tpls.Help)
@@ -568,7 +569,7 @@ func (s *Select) renderHelp(b bool) []byte {
 		PageUpKey   string
 		Search      bool
 		SearchKey   string
-		End         string
+		EndKey      string
 	}{
 		NextKey:     s.Keys.Next.Display,
 		PrevKey:     s.Keys.Prev.Display,
@@ -576,7 +577,7 @@ func (s *Select) renderHelp(b bool) []byte {
 		PageUpKey:   s.Keys.PageUp.Display,
 		SearchKey:   s.Keys.Search.Display,
 		Search:      b,
-		End:         s.Keys.End.Display,
+		EndKey:      s.Keys.End.Display,
 	}
 
 	return render(s.Templates.help, keys)
@@ -594,5 +595,5 @@ func render(tpl *template.Template, data interface{}) []byte {
 func endProc() {
 	fmt.Println("****** Thanks for using gfgcli. ******")
 	// gracefully exiting
-    os.Exit(0)
+	os.Exit(0)
 }
