@@ -104,7 +104,7 @@ func displayArticle(article Article) {
 	// Request the HTML page
 	doc, _ := parseDocument(article.Href)
 	if doc != nil {
-		doc.Find("div[class=entry-content]>p,div[class=entry-content]>ol,div[class=entry-content]>ul,div[class=entry-content]>pre,div[class=entry-content]>blockquote,div[class=entry-content] .code-container").Each(func(i int, s *goquery.Selection) {
+		doc.Find("div[class=entry-content]>p,div[class=entry-content]>ol,div[class=entry-content]>ul,div[class=entry-content]>pre,div[class=entry-content]>blockquote>p,div[class=entry-content] .code-container").Each(func(i int, s *goquery.Selection) {
 			fmt.Println(s.Text())
 		})
 	}
