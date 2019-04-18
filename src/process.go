@@ -1,4 +1,4 @@
-package process
+package main
 
 import (
 	"github.com/manifoldco/promptui"
@@ -46,7 +46,7 @@ var (
 func loadCompanies(wow *wow.Wow) {
 	// start the spinner
 	wow.Start()
-	parsDocument(InterviewUrl, "div[class=entry-content]>ul:nth-of-type(1) >li", func(element *colly.HTMLElement) {
+	parseDocument(InterviewUrl, "div[class=entry-content]>ul:nth-of-type(1) >li", func(element *colly.HTMLElement) {
 		element.ForEach("a[href]", func(_ int, e *colly.HTMLElement) {
 			link := e.Attr("href")
 			nameSlice := strings.Split(e.Text, "[")
@@ -66,7 +66,7 @@ func loadArticles(company Company, wow *wow.Wow) {
 	for pageNo := 1; pageNo < MaxPageSize; pageNo++ {
 
 		url := company.Href + "page/" + strconv.Itoa(pageNo)
-		err := parsDocument(url, "article .entry-title", func(element *colly.HTMLElement) {
+		err := parseDocument(url, "article .entry-title", func(element *colly.HTMLElement) {
 			element.ForEach("a[href]", func(_ int, e *colly.HTMLElement) {
 				article := Article{Title: strings.TrimSpace(e.Text), Href: e.Attr("href")}
 				Articles = append(Articles, article)
@@ -81,7 +81,7 @@ func loadArticles(company Company, wow *wow.Wow) {
 
 func displayArticle(article Article) {
 	locator := "div[class=entry-content]>p,div[class=entry-content]>ol,div[class=entry-content]>ul,div[class=entry-content]>pre,div[class=entry-content]>blockquote>p,div[class=entry-content] .code-container"
-	_ = parsDocument(article.Href, locator, func(element *colly.HTMLElement) {
+	_ = parseDocument(article.Href, locator, func(element *colly.HTMLElement) {
 		fmt.Println(element.Text)
 	})
 
@@ -136,4 +136,8 @@ func Init() {
 		// prompt all articles for the company
 		promptArticles()
 	}
+}
+
+func main() {
+	Init()
 }

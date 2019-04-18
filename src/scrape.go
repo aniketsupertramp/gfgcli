@@ -1,4 +1,4 @@
-package process
+package main
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ func GetDocumentStatus(url string) int {
 	return res.StatusCode
 }
 
-func parsDocument(url, locator string, callbackFunction func(element *colly.HTMLElement)) error {
+func parseDocument(url, locator string, callbackFunction func(element *colly.HTMLElement)) error {
 	if status := GetDocumentStatus(url); status != http.StatusOK {
 		return errors.New(ErrNon200)
 	}
