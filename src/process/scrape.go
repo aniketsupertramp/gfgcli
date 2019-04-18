@@ -2,28 +2,31 @@ package process
 
 import (
 	"net/http"
-	"github.com/PuerkitoBio/goquery"
 	"log"
 	"errors"
-	"fmt"
+	"github.com/gocolly/colly"
 )
 
-func parseDocument(url string) (*goquery.Document, error) {
-	// Request the HTML page.
+func GetDocumentStatus(url string) int {
 	res, err := http.Get(url)
 	if err != nil {
-		log.Fatalf("gfgCLI:: Error loading geting link response: link: %s, error: %s", url, err.Error())
+		log.Fatalf("gfgCLI:: Error geting link response: link: %s, error: %s", url, err.Error())
 	}
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		//fmt.Println("gfgCLI::status code error: %d %s", res.StatusCode, res.Status)
-		return nil, errors.New(ErrNon200)
-	}
+	return res.StatusCode
+}
 
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		fmt.Println("gfgCLI::load error: " + err.Error())
+func parsDocument(url, locator string, callbackFunction func(element *colly.HTMLElement)) error {
+	if status := GetDocumentStatus(url); status != http.StatusOK {
+		return errors.New(ErrNon200)
 	}
-	return doc, err
+	// Instantiate default collector
+	c := colly.NewCollector(
+		// Visit only domains: geeksforgeeks.org,www.geeksforgeeks.org
+		colly.AllowedDomains("geeksforgeeks.org", "www.geeksforgeeks.org"),
+	)
+	c.OnHTML(locator, callbackFunction)
+	// Start scraping
+	c.Visit(url)
+	return nil
 }

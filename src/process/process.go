@@ -2,15 +2,13 @@ package process
 
 import (
 	"github.com/manifoldco/promptui"
-	"github.com/PuerkitoBio/goquery"
 	"strings"
 	"strconv"
-	"log"
 	"fmt"
 	"os"
 	"github.com/gernest/wow"
 	"github.com/gernest/wow/spin"
-	"net/http"
+	"github.com/gocolly/colly"
 )
 
 type Company struct {
@@ -48,20 +46,17 @@ var (
 func loadCompanies(wow *wow.Wow) {
 	// start the spinner
 	wow.Start()
-	doc, err := parseDocument(InterviewUrl)
-	if err == nil && doc != nil {
-		doc.Find("div[class=entry-content]>ul:nth-of-type(1) >li").Each(func(i int, s *goquery.Selection) {
-			link, found := s.Find("a[href]").Attr("href")
+	parsDocument(InterviewUrl, "div[class=entry-content]>ul:nth-of-type(1) >li", func(element *colly.HTMLElement) {
+		element.ForEach("a[href]", func(_ int, e *colly.HTMLElement) {
+			link := e.Attr("href")
+			nameSlice := strings.Split(e.Text, "[")
+			name := strings.TrimRight(nameSlice[0], " ")
+			noOfArticles, _ := strconv.Atoi(nameSlice[1][0 : len(nameSlice[1])-1])
+			company := Company{Name: name, Href: link, NoOfArticles: noOfArticles}
+			Companies = append(Companies, company)
 
-			if found {
-				nameSlice := strings.Split(s.Text(), "[")
-				name := strings.TrimRight(nameSlice[0], " ")
-				noOfArticles, _ := strconv.Atoi(nameSlice[1][0 : len(nameSlice[1])-1])
-				company := Company{Name: name, Href: link, NoOfArticles: noOfArticles}
-				Companies = append(Companies, company)
-			}
 		})
-	}
+	})
 	// stop the spinner
 	wow.Stop()
 }
@@ -70,44 +65,26 @@ func loadArticles(company Company, wow *wow.Wow) {
 	wow.Start()
 	for pageNo := 1; pageNo < MaxPageSize; pageNo++ {
 
-		link := company.Href + "page/" + strconv.Itoa(pageNo)
-		res, err := http.Get(link)
+		url := company.Href + "page/" + strconv.Itoa(pageNo)
+		err := parsDocument(url, "article .entry-title", func(element *colly.HTMLElement) {
+			element.ForEach("a[href]", func(_ int, e *colly.HTMLElement) {
+				article := Article{Title: strings.TrimSpace(e.Text), Href: e.Attr("href")}
+				Articles = append(Articles, article)
+			})
+		})
 		if err != nil {
-			log.Fatal(err)
-		}
-		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			//fmt.Println("gfgCLI::status code: %d error: %s", res.StatusCode, res.Status)
 			break
 		}
-
-		doc, err := goquery.NewDocumentFromReader(res.Body)
-		if err != nil {
-			fmt.Println("gfgCLI::load ERROR: " + err.Error())
-			// Error: gzip: invalid header ,just logging and skipping for now
-			continue
-		}
-
-		doc.Find("article .entry-title").Each(func(i int, s *goquery.Selection) {
-
-			link, found := s.Find("a[href]").Attr("href")
-			if found {
-				article := Article{Title: strings.TrimSpace(s.Text()), Href: link}
-				Articles = append(Articles, article)
-			}
-		})
 	}
 	wow.Stop()
 }
 
 func displayArticle(article Article) {
-	// Request the HTML page
-	doc, _ := parseDocument(article.Href)
-	if doc != nil {
-		doc.Find("div[class=entry-content]>p,div[class=entry-content]>ol,div[class=entry-content]>ul,div[class=entry-content]>pre,div[class=entry-content]>blockquote>p,div[class=entry-content] .code-container").Each(func(i int, s *goquery.Selection) {
-			fmt.Println(s.Text())
-		})
-	}
+	locator := "div[class=entry-content]>p,div[class=entry-content]>ol,div[class=entry-content]>ul,div[class=entry-content]>pre,div[class=entry-content]>blockquote>p,div[class=entry-content] .code-container"
+	_ = parsDocument(article.Href, locator, func(element *colly.HTMLElement) {
+		fmt.Println(element.Text)
+	})
+
 }
 
 func promptCompaniesList() Company {
