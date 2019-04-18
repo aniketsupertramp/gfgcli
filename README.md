@@ -9,9 +9,9 @@ Prerequisite: <br />
 1.)Go
 
 Setup: <br />
-1.) RUN ***go get github.com/aniketsupertramp/gfgcli/src*** <br />
-2.) ***cd $GOPATH*** <br />
-3.) ***go build -o gfgc gfgcli/src/main.go*** <br />
+1.)***cd $GOPATH*** <br />
+2.) RUN ***go get github.com/aniketsupertramp/gfgcli/src*** <br />
+3.) ***go build -o gfgc src/github.com/aniketsupertramp/gfgcli/src/*.go*** <br />
 4.) ***cp gfgc /usr/local/bin*** <br />
 
 ***Done !!!***
